@@ -10,6 +10,8 @@ namespace NoizeRoomApp.Configuration
         {
             builder.HasMany(r => r.Users)
                 .WithOne(u => u.Role);
+
+            
         }
     }
 }
