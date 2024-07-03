@@ -8,6 +8,8 @@
         public string BookerName { get; set; }
         public DateTime TimeFrom { get; set; }
         public DateTime TimeTo { get; set; }
+
+        public Guid BookerId { get; set; }
     }
 
 

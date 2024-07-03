@@ -9,5 +9,6 @@
         public string PhoneNumber { get; set; }
         public Guid AccessToken { get; set; }
         public string NotifyType { get; set; }
+        public int RoleId { get; set; }
     }
 }

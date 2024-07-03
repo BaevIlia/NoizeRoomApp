@@ -20,6 +20,10 @@ namespace NoizeRoomApp.Controllers
                 .Where(u => u.Email.Equals(request.email) && u.Password.Equals(request.password))
                 .FirstOrDefault();
 
+            if (user is null) 
+            {
+                return Unauthorized();
+            }
             return Ok(new LoginResponce(user.Id, Guid.NewGuid()));
         }
 
