@@ -8,7 +8,7 @@ namespace NoizeRoomApp.Database
     {
         public PostgreSQLContext(DbContextOptions<PostgreSQLContext> options):base(options) 
         {
-
+            Database.EnsureCreated(); 
         }
         public DbSet<UserEntity> Users { get; set; }
         public DbSet<BookingEntity> Bookings { get; set; }

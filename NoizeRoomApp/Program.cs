@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NoizeRoomApp.Database;
 
+
 namespace NoizeRoomApp
 {
     public class Program
@@ -8,18 +9,19 @@ namespace NoizeRoomApp
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            var configuration = builder.Configuration;
+            string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddControllers();
             builder.Services.AddDbContext<PostgreSQLContext>(
                 options =>
                 {
-                    options.UseNpgsql(configuration.GetConnectionString(nameof(PostgreSQLContext)));
+                    options.UseNpgsql(connectionString);
                 });
             var app = builder.Build();
 
             app.MapControllers();
 
-            app.MapGet("/", () => "Hello World!");
+            app.MapGet("/", () => "Hello world!");
+            
 
             app.Run();
         }

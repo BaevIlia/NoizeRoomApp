@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NoizeRoomApp.Database;
+using NoizeRoomApp.Database.Models;
 using NoizeRoomApp.Models;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace NoizeRoomApp.Controllers
@@ -13,11 +16,20 @@ namespace NoizeRoomApp.Controllers
             new User { Id = Guid.Parse("fe442bb5-514a-4c27-9b26-f6219866035b"), Name="Олег", Email="oleg@mail.ru", Password="123", PhoneNumber="88005553535"}
         };
 
+        private readonly PostgreSQLContext _context;
+
+        public UserController(PostgreSQLContext context) 
+        {
+            _context= context;
+        }
+
         [HttpPost("auth")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            User? user = users
-                .Where(u => u.Email.Equals(request.email) && u.Password.Equals(request.password))
+            string password = EncodindPassword(DecodingPassword(request.password));
+
+            UserEntity user = _context.Users
+                .Where(u => u.Email.Equals(request.email) && u.Password.Equals(password))
                 .FirstOrDefault();
 
             if (user is null) 
@@ -30,7 +42,7 @@ namespace NoizeRoomApp.Controllers
         [HttpPost("reg")]
         public async Task<IActionResult> Registration([FromBody] RegisterRequest registerRequest)
         {
-
+            
             var passFromReq = Convert.FromBase64String(registerRequest.password);
             string encodedPassword = Encoding.UTF8.GetString(passFromReq);
 
@@ -42,57 +54,98 @@ namespace NoizeRoomApp.Controllers
 
 
 
-            User newUser = new()
+            UserEntity newUser = new()
             {
                 Id = Guid.NewGuid(),
                 Name = registerRequest.name,
                 Email = registerRequest.email,
                 PhoneNumber = registerRequest.phone,
                 Password = builder.ToString(),
-                NotifyType = registerRequest.notifyType,
+                AccessToken = Guid.NewGuid(),
+                NotifyTypeId = registerRequest.notifyTypeId,
+                RoleId = registerRequest.roleId
             };
 
             try
             {
-                users.Append(newUser);
+                _context.Users.Add(newUser);
+                _context.SaveChanges();
+                return Ok(newUser.Id.ToString());
+
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
-            return Ok(new GetProfileResponce(newUser.Id, newUser.Name, newUser.Email, newUser.PhoneNumber, newUser.NotifyType));
+          
         }
 
         [HttpGet("getProfile")]
         public async Task<IActionResult> GetUserById([FromBody] GetProfileRequest request)
         {
-            User user = users.FirstOrDefault(u => u.Id.ToString() == request.id);
-            return Ok(new GetProfileResponce(user.Id, user.Name, user.Email, user.PhoneNumber, "notifEmail"));
+
+
+            UserEntity user = _context.Users.Where(u => u.Id.Equals(Guid.Parse(request.id))).FirstOrDefault();
+            if (user is null) 
+            {
+                return NoContent();
+            }
+            string notifyType = _context.Notifies.Find(user.NotifyTypeId).ToString();
+            return Ok(new GetProfileResponce(user.Id, user.Name, user.Email, user.PhoneNumber, notifyType, user.RoleId));
         }
-
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-
-            return Ok(users.ToList());
-        }
-
+  
         [HttpPut("updateProfile")]
         public async Task<IActionResult> UpdateUserInfo([FromBody] UpdateProfileRequest request)
         {
-            User userForSave = new() { Id = Guid.Parse(request.id), Name = request.name, Email = request.email, PhoneNumber = request.phoneNumber, NotifyType = request.notifyType };
+            UserEntity userForSave = _context.Users.Where(u=>u.Id.Equals(Guid.Parse(request.id))).FirstOrDefault();
 
-            users.RemoveAt(0);
-            users.Insert(0, userForSave);
+            if (userForSave is null) 
+            {
+                return NoContent();
+            }
+            try
+            {
+                userForSave.Name = request.name;
+                userForSave.Email = request.email;
+                userForSave.PhoneNumber = request.phoneNumber;
+                userForSave.NotifyTypeId = request.notifyTypeId;
 
-            return Ok(new UpdateProfileResponce(userForSave.Id.ToString(), userForSave.Name, userForSave.Email, userForSave.PhoneNumber, userForSave.NotifyType));
+                _context.SaveChanges();
+                string notifyType = _context.Notifies.Find(userForSave.NotifyTypeId).ToString();
 
+                return Ok(new UpdateProfileResponce(userForSave.Id.ToString(), userForSave.Name, userForSave.Email, userForSave.PhoneNumber, notifyType));
+            }
+            catch (Exception ex) 
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("changePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswRequest request)
         {
-            var encodedBytes = Convert.FromBase64String(request.encryptedPassw);
+            UserEntity userForPassChange = _context.Users.Where(u => u.Id.Equals(Guid.Parse(request.id))).FirstOrDefault();
+
+            if (userForPassChange is null)
+            {
+                return NoContent();
+            }
+
+            string password = DecodingPassword(request.password);
+
+
+            userForPassChange.Password = EncodindPassword(password);
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+
+
+        public string DecodingPassword(string cryptedPassword)
+        {
+            var encodedBytes = Convert.FromBase64String(cryptedPassword);
             string encodedPassword = Encoding.UTF8.GetString(encodedBytes);
 
             StringBuilder builder = new StringBuilder();
@@ -100,24 +153,31 @@ namespace NoizeRoomApp.Controllers
             {
                 builder.Append(encodedPassword[i]);
             };
+            return builder.ToString();
 
+        }
 
+        public string EncodindPassword(string password) 
+        {
 
-            return Ok(builder.ToString());
+            var crypt = MD5.Create();
+            return Convert.ToBase64String(crypt.ComputeHash(Encoding.UTF8.GetBytes(password)));
         }
     }
+
+  
 
     public record LoginResponce(Guid userId, Guid accessToken);
     public record LoginRequest(string email, string password);
 
-    public record RegisterRequest(string email, string name, string phone, string password, string notifyType);
-    public record RegisterResponce(string error);
+    public record RegisterRequest(string email, string name, string phone, string password, int notifyTypeId, int roleId);
+    public record RegisterResponce(string id);
 
     public record GetProfileRequest(string id);
-    public record GetProfileResponce(Guid id, string name, string email, string phone, string notifyType);
+    public record GetProfileResponce(Guid id, string name, string email, string phone, string notifyType, int roleId);
 
-    public record UpdateProfileRequest(string id, string name, string email, string phoneNumber, string notifyType);
+    public record UpdateProfileRequest(string id, string name, string email, string phoneNumber, int notifyTypeId);
     public record UpdateProfileResponce(string id, string name, string email, string phoneNumber, string notifyType);
 
-    public record ChangePasswRequest(string encryptedPassw, Guid token);
+    public record ChangePasswRequest(string id, string password);
 }
