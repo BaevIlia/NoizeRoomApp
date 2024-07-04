@@ -28,8 +28,8 @@ namespace NoizeRoomApp.Controllers
             new User { Id = Guid.Parse("fe442bb5-514a-4c27-9b26-f6219866035b"), Name = "Вовчик", RoleId =2}
         };
 
-        [HttpGet("getBookingsByMonth")]
-        public async Task<IActionResult> GetBookingByMonth([FromBody] GetBookingByDateRequest request)
+        [HttpGet("getBookingsByDate")]
+        public async Task<IActionResult> GetBookingByDate([FromBody] GetBookingByDateRequest request)
         {
             List<DateTime> dates = DatesGeneration(request.dateFrom, request.dateTo);
             List<GetBookingByDateResponse> responce = new();
@@ -66,13 +66,14 @@ namespace NoizeRoomApp.Controllers
         [HttpPost("book")]
         public async Task<IActionResult> Book([FromBody] AddBookRequest request)
         {
+            string bookerName = _context.Users.Where(u => u.Id.Equals(Guid.Parse(request.bookerId))).Select(u=>u.Name).FirstOrDefault();
             try
             {
                 BookingEntity newBook = new()
                 {
                     Id = Guid.NewGuid(),
                     BookerId = Guid.Parse(request.bookerId),
-                    BookerName = request.bookerName,
+                    BookerName = bookerName,
                     Date = request.date,
                     TimeFrom = request.timeFrom,
                     TimeTo = request.timeTo,

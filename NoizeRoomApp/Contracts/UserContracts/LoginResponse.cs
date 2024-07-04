@@ -1,4 +1,4 @@
 ﻿namespace NoizeRoomApp.Contracts.UserContracts
 {
-    public record LoginResponse(Guid userId, Guid accessToken);
+    public record LoginResponse(string userId, string accessToken);
 }

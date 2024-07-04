@@ -43,7 +43,7 @@ namespace NoizeRoomApp.Contracts
             }
             user.AccessToken = Guid.NewGuid();
             _context.SaveChanges();
-            return Ok(new LoginResponse(user.Id, user.AccessToken));
+            return Ok(new LoginResponse(user.Id.ToString(), user.AccessToken.ToString()));
         }
 
         [HttpPost("reg")]
