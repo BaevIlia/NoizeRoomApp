@@ -10,6 +10,7 @@ namespace NoizeRoomApp
         {
             var builder = WebApplication.CreateBuilder(args);
             string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
             builder.Services.AddControllers();
             builder.Services.AddDbContext<PostgreSQLContext>(
                 options =>
