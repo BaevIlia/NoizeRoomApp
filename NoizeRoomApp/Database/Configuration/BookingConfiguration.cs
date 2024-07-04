@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NoizeRoomApp.Database.Models;
 
-namespace NoizeRoomApp.Configuration
+namespace NoizeRoomApp.Database.Configuration
 {
     public class BookingConfiguration : IEntityTypeConfiguration<BookingEntity>
     {
@@ -12,10 +12,10 @@ namespace NoizeRoomApp.Configuration
 
             builder.HasOne(b => b.User)
                 .WithMany(u => u.Bookings)
-                .HasForeignKey(b=>b.BookerId);
+                .HasForeignKey(b => b.BookerId);
 
 
-              
+
         }
     }
 }

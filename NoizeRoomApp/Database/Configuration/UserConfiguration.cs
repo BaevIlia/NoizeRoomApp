@@ -2,11 +2,11 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NoizeRoomApp.Database.Models;
 
-namespace NoizeRoomApp.Configuration
+namespace NoizeRoomApp.Database.Configuration
 {
     public class UserConfiguration : IEntityTypeConfiguration<UserEntity>
     {
-        public void Configure(EntityTypeBuilder<UserEntity> builder) 
+        public void Configure(EntityTypeBuilder<UserEntity> builder)
         {
             builder.HasKey(u => u.Id);
 
@@ -15,11 +15,11 @@ namespace NoizeRoomApp.Configuration
 
             builder.HasOne(u => u.Role)
                 .WithMany(r => r.Users)
-                .HasForeignKey(u=>u.RoleId);
+                .HasForeignKey(u => u.RoleId);
 
             builder.HasOne(u => u.Notify)
             .WithMany(n => n.Users)
-            .HasForeignKey(u=>u.NotifyTypeId);
+            .HasForeignKey(u => u.NotifyTypeId);
         }
     }
 }

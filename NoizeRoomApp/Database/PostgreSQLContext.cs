@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using NoizeRoomApp.Configuration;
+using NoizeRoomApp.Database.Configuration;
 using NoizeRoomApp.Database.Models;
 
 namespace NoizeRoomApp.Database

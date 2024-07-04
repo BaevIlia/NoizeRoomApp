@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NoizeRoomApp.Database.Models;
 
-namespace NoizeRoomApp.Configuration
+namespace NoizeRoomApp.Database.Configuration
 {
     public class NotifyConfiguration : IEntityTypeConfiguration<NotifyEntity>
     {
@@ -10,7 +10,7 @@ namespace NoizeRoomApp.Configuration
         {
             builder.HasMany(n => n.Users)
                 .WithOne(u => u.Notify);
-                
+
         }
     }
 }

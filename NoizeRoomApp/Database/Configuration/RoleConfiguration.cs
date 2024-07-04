@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NoizeRoomApp.Database.Models;
 
-namespace NoizeRoomApp.Configuration
+namespace NoizeRoomApp.Database.Configuration
 {
     public class RoleConfiguration : IEntityTypeConfiguration<RoleEntity>
     {
@@ -11,7 +11,7 @@ namespace NoizeRoomApp.Configuration
             builder.HasMany(r => r.Users)
                 .WithOne(u => u.Role);
 
-            
+
         }
     }
 }

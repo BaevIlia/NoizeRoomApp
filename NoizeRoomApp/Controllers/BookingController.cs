@@ -27,64 +27,40 @@ namespace NoizeRoomApp.Controllers
             new User { Id = Guid.Parse("fe442bb5-514a-4c27-9b26-f6219866035b"), Name = "Вовчик", RoleId =2}
         };
 
-        [HttpGet("all")]
-        public async Task<IActionResult> GetBookingByMonth([FromBody] GetBookingByMonthRequest request)
+        [HttpGet("getBookingsByMonth")]
+        public async Task<IActionResult> GetBookingByMonth([FromBody] GetBookingByDateRequest request)
         {
-            List<Booking> bookingsPerMonth = bookings.Where(b => b.Date.Month.Equals(request.month.Month)).ToList();
-            return Ok(new GetBookingByMonthResponce(DateTime.UtcNow, bookingsPerMonth));
+            List<DateTime> dates = DatesGeneration(request.dateFrom, request.dateTo);
+            List<GetBookingByMonthResponce> responce = new();
+            foreach (var date in dates) 
+            {
+                if (_context.Bookings.Any(b => b.Date.Equals(date)))
+                {
+                    responce.Add(new GetBookingByMonthResponce(date, true));
+                }
+                else 
+                {
+                    responce.Add(new GetBookingByMonthResponce(date, false));
+                }
+            }
+
+
+            return Ok(responce);
         }
 
-        #region Statistic
-        /*[HttpGet("statistic")]
-         public async Task<IActionResult> GetStatisticByMonth([FromBody] GetBookingByMonthRequest request)
-         {
-             Dictionary<int,int> days = new();
+       
+        [HttpGet("statistic")]
+         public async Task<IActionResult> GetStatisticByMonth([FromBody] GetStatisticRequest request)
+        {
+            List<DateTime> dates = GenerateDatesByMonth(request.date);
+            List<GetStatisticResponce> responce = GenerateStatistic(dates);
 
-             DateTime firstDay = new DateTime(2024, 7, 1);
+            return Ok(responce);
+        }
 
-             for (DateTime i = firstDay; i<=new DateTime(2024, 7, DateTime.DaysInMonth(2024,7)); i.AddDays(1)) 
-             {
-
-                 days.Add(i.Day, CountBooking(i));
-             }
+        
 
 
-
-              var data = from book in bookings
-                         let count = bookings.Count(b => b.Date.Month.Equals(request.month.Month))
-                         group book by book.Date into dateGroup
-                         orderby dateGroup.Key
-                         select new
-                         {
-                             Date = 
-                             Count = dateGroup.Count()
-
-                         };
-
-             List<Statistic> statistic = new();
-             foreach (var day in days) 
-             {
-                 statistic.Add(new Statistic(day.Key, day.Value));
-             }
-
-             return Ok(statistic);
-         }*/
-        #endregion
-
-        #region CountBooking
-        /*  int CountBooking(DateTime day) 
-          {
-              if (bookings.Exists(d => d.Date.Equals(day)))
-              {
-                  return bookings.Where(b => b.Date.Equals(day)).Count();
-              }
-              else 
-              {
-                  return 0;
-              }
-          }*/
-
-        #endregion
 
         [HttpPost("book")]
         public async Task<IActionResult> Book([FromBody] PostBookRequest request)
@@ -173,18 +149,53 @@ namespace NoizeRoomApp.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        /* [HttpGet("date")]
-        public async Task<IActionResult> GetDate() 
-         {
-             return Ok(DateTime.Now);
-         }*/
+   
 
+        private static List<DateTime> DatesGeneration(DateTime dateFrom, DateTime dateTo)
+        {
+            List<DateTime> dates = new();
+            DateTime startDate = dateFrom;
+            DateTime nextDate = startDate.AddDays(1);
+            int count = 1;
+            while (nextDate <= dateTo)
+            {
+                dates.Add(startDate);
+                nextDate = startDate.AddDays(1);
+                startDate = nextDate;
 
+            }
+
+            return dates;
+        }
+        private static List<DateTime> GenerateDatesByMonth(DateTime date)
+        {
+            List<DateTime> dates = new();
+
+            int count = DateTime.DaysInMonth(date.Year, date.Month);
+
+            for (int i = 1; i <= count; i++)
+            {
+                dates.Add(new DateTime(date.Year, date.Month, i));
+            }
+
+            return dates;
+        }
+        private List<GetStatisticResponce> GenerateStatistic(List<DateTime> dates)
+        {
+            List<GetStatisticResponce> responce = new();
+            foreach (var date in dates)
+            {
+                responce.Add(new GetStatisticResponce(date, _context.Bookings.Where(b => b.Date.Equals(date)).Count()));
+
+            }
+
+            return responce;
+        }
 
     }
 
-    public record GetBookingByMonthResponce(DateTime date, List<Booking> bookingsList);
-    public record GetBookingByMonthRequest(DateTime month);
+    public record GetBookingByMonthResponce(DateTime date, bool isBooked);
+    public record GetBookingByDateRequest(DateTime dateFrom, DateTime dateTo);
 
     public record PostBookRequest(DateTime date, DateTime timeFrom, DateTime timeTo, string bookerName, string bookerId);
     public record Statistic(int dayOfBooking, int count);
@@ -194,4 +205,7 @@ namespace NoizeRoomApp.Controllers
     public record DeleteBookRequest(string id);
 
     public record GetBooksByDayResponse(DateTime dateBooking, DateTime timeFrom, DateTime timeTo, string bookerName);
+
+    public record GetStatisticRequest(DateTime date);
+    public record GetStatisticResponce(DateTime date, int count);
 }
