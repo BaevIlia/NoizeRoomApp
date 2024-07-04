@@ -2,6 +2,7 @@
 using NoizeRoomApp.Database;
 using NoizeRoomApp.Models;
 using NoizeRoomApp.Database.Models;
+using NoizeRoomApp.Contracts.BookingContracts;
 
 namespace NoizeRoomApp.Controllers
 {
@@ -31,16 +32,16 @@ namespace NoizeRoomApp.Controllers
         public async Task<IActionResult> GetBookingByMonth([FromBody] GetBookingByDateRequest request)
         {
             List<DateTime> dates = DatesGeneration(request.dateFrom, request.dateTo);
-            List<GetBookingByMonthResponce> responce = new();
+            List<GetBookingByDateResponse> responce = new();
             foreach (var date in dates) 
             {
                 if (_context.Bookings.Any(b => b.Date.Equals(date)))
                 {
-                    responce.Add(new GetBookingByMonthResponce(date, true));
+                    responce.Add(new GetBookingByDateResponse(date, true));
                 }
                 else 
                 {
-                    responce.Add(new GetBookingByMonthResponce(date, false));
+                    responce.Add(new GetBookingByDateResponse(date, false));
                 }
             }
 
@@ -49,11 +50,11 @@ namespace NoizeRoomApp.Controllers
         }
 
        
-        [HttpGet("statistic")]
+        [HttpGet("getStatistic")]
          public async Task<IActionResult> GetStatisticByMonth([FromBody] GetStatisticRequest request)
         {
             List<DateTime> dates = GenerateDatesByMonth(request.date);
-            List<GetStatisticResponce> responce = GenerateStatistic(dates);
+            List<GetStatisticResponse> responce = GenerateStatistic(dates);
 
             return Ok(responce);
         }
@@ -63,7 +64,7 @@ namespace NoizeRoomApp.Controllers
 
 
         [HttpPost("book")]
-        public async Task<IActionResult> Book([FromBody] PostBookRequest request)
+        public async Task<IActionResult> Book([FromBody] AddBookRequest request)
         {
             try
             {
@@ -84,7 +85,7 @@ namespace NoizeRoomApp.Controllers
 
                 _context.Bookings.Add(newBook);
                 _context.SaveChanges();
-                return Ok(newBook);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -136,13 +137,26 @@ namespace NoizeRoomApp.Controllers
             }
         }
 
-        [HttpPut("bookChange")]
-        public async Task<IActionResult> BookChange([FromBody] Booking request)
+        [HttpPut("bookUpdate")]
+        public async Task<IActionResult> Update([FromBody] UpdateBookRequest request)
         {
+            BookingEntity bookForUpdate = _context.Bookings.Where(b=>b.Id.Equals(Guid.Parse(request.id))).FirstOrDefault();
+
+            if (bookForUpdate is null) 
+            {
+                return NoContent();
+            }
+
             try
             {
-                bookings.Add(request);
-                return Ok(request);
+                bookForUpdate.Date = request.date;
+                bookForUpdate.BookerName = _context.Users.Where(u => u.Id.Equals(Guid.Parse(request.bookerId))).Select(u => u.Name).FirstOrDefault();
+                bookForUpdate.TimeFrom = request.timeFrom;
+                bookForUpdate.TimeTo = request.timeTo;
+
+                _context.SaveChanges();
+
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -180,12 +194,12 @@ namespace NoizeRoomApp.Controllers
 
             return dates;
         }
-        private List<GetStatisticResponce> GenerateStatistic(List<DateTime> dates)
+        private List<GetStatisticResponse> GenerateStatistic(List<DateTime> dates)
         {
-            List<GetStatisticResponce> responce = new();
+            List<GetStatisticResponse> responce = new();
             foreach (var date in dates)
             {
-                responce.Add(new GetStatisticResponce(date, _context.Bookings.Where(b => b.Date.Equals(date)).Count()));
+                responce.Add(new GetStatisticResponse(date, _context.Bookings.Where(b => b.Date.Equals(date)).Count()));
 
             }
 
@@ -194,18 +208,16 @@ namespace NoizeRoomApp.Controllers
 
     }
 
-    public record GetBookingByMonthResponce(DateTime date, bool isBooked);
-    public record GetBookingByDateRequest(DateTime dateFrom, DateTime dateTo);
+    
+    
 
-    public record PostBookRequest(DateTime date, DateTime timeFrom, DateTime timeTo, string bookerName, string bookerId);
-    public record Statistic(int dayOfBooking, int count);
-    public record GetBooksByDayRequest(string userId, DateTime date);
-    public record Interval(int from, int to);
+  
 
-    public record DeleteBookRequest(string id);
 
-    public record GetBooksByDayResponse(DateTime dateBooking, DateTime timeFrom, DateTime timeTo, string bookerName);
 
-    public record GetStatisticRequest(DateTime date);
-    public record GetStatisticResponce(DateTime date, int count);
+
+    
+
+   
+
 }
