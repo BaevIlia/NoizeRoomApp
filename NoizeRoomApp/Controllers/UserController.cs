@@ -4,8 +4,10 @@ using NoizeRoomApp.Database.Models;
 using NoizeRoomApp.Models;
 using System.Security.Cryptography;
 using System.Text;
+using NoizeRoomApp.Contracts.UserContracts;
 
-namespace NoizeRoomApp.Controllers
+
+namespace NoizeRoomApp.Contracts
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -18,9 +20,12 @@ namespace NoizeRoomApp.Controllers
 
         private readonly PostgreSQLContext _context;
 
-        public UserController(PostgreSQLContext context) 
+
+
+        public UserController(PostgreSQLContext context)
         {
-            _context= context;
+            _context = context;
+
         }
 
         [HttpPost("auth")]
@@ -31,18 +36,20 @@ namespace NoizeRoomApp.Controllers
             UserEntity user = _context.Users
                 .Where(u => u.Email.Equals(request.email) && u.Password.Equals(password))
                 .FirstOrDefault();
-
-            if (user is null) 
+                      
+            if (user is null)
             {
                 return Unauthorized();
             }
-            return Ok(new LoginResponce(user.Id, Guid.NewGuid()));
+            user.AccessToken = Guid.NewGuid();
+            _context.SaveChanges();
+            return Ok(new LoginResponse(user.Id, user.AccessToken));
         }
 
         [HttpPost("reg")]
-        public async Task<IActionResult> Registration([FromBody] RegisterRequest registerRequest)
+        public async Task<IActionResult> Registration([FromBody] RegistrationRequest registerRequest)
         {
-            
+
             var passFromReq = Convert.FromBase64String(registerRequest.password);
             string encodedPassword = Encoding.UTF8.GetString(passFromReq);
 
@@ -70,14 +77,14 @@ namespace NoizeRoomApp.Controllers
             {
                 _context.Users.Add(newUser);
                 _context.SaveChanges();
-                return Ok(newUser.Id.ToString());
+                return Ok(new RegistrationResponse(newUser.Id.ToString()));
 
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
-          
+
         }
 
         [HttpGet("getProfile")]
@@ -86,20 +93,20 @@ namespace NoizeRoomApp.Controllers
 
 
             UserEntity user = _context.Users.Where(u => u.Id.Equals(Guid.Parse(request.id))).FirstOrDefault();
-            if (user is null) 
+            if (user is null)
             {
                 return NoContent();
             }
             string notifyType = _context.Notifies.Find(user.NotifyTypeId).ToString();
-            return Ok(new GetProfileResponce(user.Id, user.Name, user.Email, user.PhoneNumber, notifyType, user.RoleId));
+            return Ok(new GetProfileResponse(user.Id, user.Name, user.Email, user.PhoneNumber, notifyType, user.RoleId));
         }
-  
+
         [HttpPut("updateProfile")]
         public async Task<IActionResult> UpdateUserInfo([FromBody] UpdateProfileRequest request)
         {
-            UserEntity userForSave = _context.Users.Where(u=>u.Id.Equals(Guid.Parse(request.id))).FirstOrDefault();
+            UserEntity userForSave = _context.Users.Where(u => u.Id.Equals(Guid.Parse(request.id))).FirstOrDefault();
 
-            if (userForSave is null) 
+            if (userForSave is null)
             {
                 return NoContent();
             }
@@ -115,7 +122,7 @@ namespace NoizeRoomApp.Controllers
 
                 return Ok(new UpdateProfileResponce(userForSave.Id.ToString(), userForSave.Name, userForSave.Email, userForSave.PhoneNumber, notifyType));
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -131,16 +138,15 @@ namespace NoizeRoomApp.Controllers
                 return NoContent();
             }
 
-            string password = DecodingPassword(request.password);
+            string password =DecodingPassword(request.password);
 
 
-            userForPassChange.Password = EncodindPassword(password);
+            userForPassChange.Password =EncodindPassword(password);
 
             _context.SaveChanges();
 
             return Ok();
         }
-
 
 
         public string DecodingPassword(string cryptedPassword)
@@ -157,27 +163,30 @@ namespace NoizeRoomApp.Controllers
 
         }
 
-        public string EncodindPassword(string password) 
+        public string EncodindPassword(string password)
         {
 
             var crypt = MD5.Create();
             return Convert.ToBase64String(crypt.ComputeHash(Encoding.UTF8.GetBytes(password)));
         }
+
+
+
     }
 
-  
 
-    public record LoginResponce(Guid userId, Guid accessToken);
-    public record LoginRequest(string email, string password);
 
-    public record RegisterRequest(string email, string name, string phone, string password, int notifyTypeId, int roleId);
-    public record RegisterResponce(string id);
 
-    public record GetProfileRequest(string id);
-    public record GetProfileResponce(Guid id, string name, string email, string phone, string notifyType, int roleId);
 
-    public record UpdateProfileRequest(string id, string name, string email, string phoneNumber, int notifyTypeId);
-    public record UpdateProfileResponce(string id, string name, string email, string phoneNumber, string notifyType);
 
-    public record ChangePasswRequest(string id, string password);
+ 
+
+
+
+
+
+
+   
+
+
 }
