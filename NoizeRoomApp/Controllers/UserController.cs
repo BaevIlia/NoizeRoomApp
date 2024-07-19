@@ -18,13 +18,11 @@ namespace NoizeRoomApp.Contracts
     public class UserController : ControllerBase
     {
 
-        private readonly PostgreSQLContext _context;
 
         private readonly UserRepository _userRepository;
 
-        public UserController(PostgreSQLContext context, UserRepository userRepository)
+        public UserController(UserRepository userRepository)
         {
-            _context = context;
             _userRepository = userRepository;
         }
 
@@ -37,13 +35,16 @@ namespace NoizeRoomApp.Contracts
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
        
-            string password = EncodindPassword(DecodingPassword(request.password));
+            string password = EncodingPassword(DecodingPassword(request.password));
 
-            var userResult = await _userRepository.AuthorizeUser(request.email, password);
+            var user = await _userRepository.AuthorizeUser(request.email, password);
 
-            userResult.Value.AccessToken = Guid.NewGuid();
+            if (user is null)
+                return NotFound("Такого пользователя не существует");
+
+            user.AccessToken = Guid.NewGuid();
             
-            return Ok(new LoginResponse(userResult.Value.Id.ToString(), userResult.Value.AccessToken.ToString()));
+            return Ok(new LoginResponse(user.Id.ToString(), user.AccessToken.ToString()));
         }
 
         /// <summary>
@@ -54,35 +55,15 @@ namespace NoizeRoomApp.Contracts
         [HttpPost("reg")]
         public async Task<IActionResult> Registration([FromBody] RegistrationRequest registerRequest)
         {
-
-
             string password = DecodingPassword(registerRequest.password);
 
-            UserEntity newUser = new()
-            {
-                Id = Guid.NewGuid(),
-                Name = registerRequest.name,
-                Email = registerRequest.email,
-                PhoneNumber = registerRequest.phone,
-                Password = EncodindPassword(password),
-                NotifyTypeId = registerRequest.notifyTypeId,
-                RoleId = registerRequest.roleId
-            };
+            Guid newUserId =  await _userRepository.Registration(registerRequest, EncodingPassword(password));
 
-            try
-            {
+            if (string.IsNullOrEmpty(newUserId.ToString())) 
+            
+                return BadRequest();
 
-                _context.Users.Add(newUser);
-                _context.SaveChanges();
-                return Ok(new RegistrationResponse(newUser.Id.ToString()));
-
-            }
-
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-
+            return Ok(newUserId.ToString());
         }
         /// <summary>
         /// Запрос о получении пользователя, на вход принимает идентификатор пользователя
@@ -93,16 +74,20 @@ namespace NoizeRoomApp.Contracts
         public async Task<IActionResult> GetUserById([FromBody] GetProfileRequest request)
         {
 
+            var user =  await _userRepository.GetById(Guid.Parse(request.id));
 
-            UserEntity user = _context.Users.Where(u => u.Id.Equals(Guid.Parse(request.id))).FirstOrDefault();
+            var notifyType = await _userRepository.GetNotifyType(user.NotifyTypeId);
 
 
             if (user is null)
             {
                 return NoContent();
             }
+            if (string.IsNullOrEmpty(notifyType)) 
+            {
+                return BadRequest();
+            }
 
-            string notifyType = _context.Notifies.Find(user.NotifyTypeId).Name;
             return Ok(new GetProfileResponse(user.Id, user.Name, user.Email, user.PhoneNumber, notifyType, user.RoleId));
         }
 
@@ -114,27 +99,15 @@ namespace NoizeRoomApp.Contracts
         /// <returns></returns>
         [HttpPut("updateProfile")]
         public async Task<IActionResult> UpdateUserInfo([FromBody] UpdateProfileRequest request)
-        {
+        { 
 
-            UserEntity userForSave = _context.Users.Where(u => u.Id.Equals(Guid.Parse(request.id))).FirstOrDefault();
-
-
-            if (userForSave is null)
-            {
-                return NoContent();
-            }
+           
             try
             {
 
-                userForSave.Name = request.name;
-                userForSave.Email = request.email;
-                userForSave.PhoneNumber = request.phoneNumber;
-                userForSave.NotifyTypeId = request.notifyTypeId;
+                var user = await _userRepository.UpdateUserProfile(Guid.Parse(request.id), request.name, request.email, request.phoneNumber, request.notifyType);
 
-                _context.SaveChanges();
-                string notifyType = _context.Notifies.Find(userForSave.NotifyTypeId).ToString();
-
-                return Ok(new UpdateProfileResponce(userForSave.Id.ToString(), userForSave.Name, userForSave.Email, userForSave.PhoneNumber, notifyType));
+                return Ok(new UpdateProfileResponce(user.Id.ToString(), user.Name, user.Email, user.PhoneNumber, request.notifyType));
             }
             catch (Exception ex)
             {
@@ -150,22 +123,12 @@ namespace NoizeRoomApp.Contracts
         [HttpPut("changePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswRequest request)
         {
+            string password =DecodingPassword(request.password);
 
-            UserEntity userForPassChange = _context.Users.Where(u => u.Id.Equals(Guid.Parse(request.id))).FirstOrDefault();
-
-
-            if (userForPassChange is null)
+            if (_userRepository.ChangeUserPassword(Guid.Parse(request.id), EncodingPassword(password)).Result ==0)
             {
                 return NoContent();
             }
-
-
-            string password =DecodingPassword(request.password);
-
-
-            userForPassChange.Password =EncodindPassword(password);
-
-            _context.SaveChanges();
 
             return Ok();
         }
@@ -194,7 +157,7 @@ namespace NoizeRoomApp.Contracts
         /// </summary>
         /// <param name="password"></param>
         /// <returns></returns>
-        public string EncodindPassword(string password)
+        public string EncodingPassword(string password)
         {
 
             var crypt = MD5.Create();
