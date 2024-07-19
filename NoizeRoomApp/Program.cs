@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NoizeRoomApp.Database;
+using NoizeRoomApp.Repositories;
 
 
 namespace NoizeRoomApp
@@ -12,11 +13,9 @@ namespace NoizeRoomApp
             string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
             builder.Services.AddControllers();
-            builder.Services.AddDbContext<PostgreSQLContext>(
-                options =>
-                {
-                    options.UseNpgsql(connectionString);
-                });
+            builder.Services.AddDbContext<PostgreSQLContext>();
+                
+            builder.Services.AddScoped<UserRepository>();
             var app = builder.Build();
 
             app.MapControllers();

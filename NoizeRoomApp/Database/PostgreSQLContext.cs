@@ -6,14 +6,22 @@ namespace NoizeRoomApp.Database
 {
     public class PostgreSQLContext : DbContext
     {
-        public PostgreSQLContext(DbContextOptions<PostgreSQLContext> options):base(options) 
+        private readonly IConfiguration _configuration;
+  
+        public PostgreSQLContext(IConfiguration configuration) 
         {
-            Database.EnsureCreated(); 
-        }
+            _configuration = configuration;
+        } 
         public DbSet<UserEntity> Users { get; set; }
         public DbSet<BookingEntity> Bookings { get; set; }
         public DbSet<RoleEntity> Roles { get; set; }
         public DbSet<NotifyEntity> Notifies { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseNpgsql(_configuration.GetConnectionString("Database"));
+            
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) 
         {
@@ -24,6 +32,8 @@ namespace NoizeRoomApp.Database
 
             base.OnModelCreating(modelBuilder);
         }
+
+      
 
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NoizeRoomApp.Database;
-using NoizeRoomApp.Models;
 using NoizeRoomApp.Database.Models;
 using NoizeRoomApp.Contracts.BookingContracts;
 
