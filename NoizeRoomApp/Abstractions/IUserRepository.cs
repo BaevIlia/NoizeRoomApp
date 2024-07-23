@@ -8,6 +8,12 @@ namespace NoizeRoomApp.Abstractions
         public Task<UserEntity> Get(Guid id);
         public Task<Guid> Create(UserEntity userForCreate);
         public Task<bool> Delete(Guid id);
-        public Task<Guid> Update(Guid id, string name, string email, int notifyTypeId);
+        public Task<Guid> Update(Guid id, string name, string email, string phoneNumber, int notifyTypeId);
+
+        public Task<int> GetNotifyTypeId(string notifyType);
+
+        public Task<int> GetRoleId(string roleName);
+        public Task<Guid> Authorize(string email, string password);
+        public Task<bool> ChangePassword(Guid id, string password);
     }
 }
