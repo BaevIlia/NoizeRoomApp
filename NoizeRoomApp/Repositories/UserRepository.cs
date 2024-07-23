@@ -3,9 +3,11 @@ using NoizeRoomApp.Database.Models;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 using NoizeRoomApp.Contracts.UserContracts;
+using NoizeRoomApp.Abstractions;
+
 namespace NoizeRoomApp.Repositories
 {
-    public class UserRepository
+    public class UserRepository : IUserRepository
     {
         private readonly PostgreSQLContext _context;
 
@@ -14,90 +16,52 @@ namespace NoizeRoomApp.Repositories
             _context = context;
         }
 
-        public async Task<UserEntity> AuthorizeUser(string email, string password)
+        public async Task<Guid> Create(UserEntity userForCreate)
         {
-            var user = await _context.Users
-                 .Where(u => u.Email.Equals(email) && u.Password.Equals(password))
-                 .FirstOrDefaultAsync();
+            userForCreate.Id = Guid.NewGuid();
+            await _context.Users.AddAsync(userForCreate);
+            await _context.SaveChangesAsync();
 
-     
-            return user;
+            return userForCreate.Id;
         }
 
-        public async Task<Guid> Registration(RegistrationRequest registerRequest, string encodedPassword) 
+        public async Task<bool> Delete(Guid id)
         {
-            var newUser = new UserEntity()
-            {
-                Id = Guid.NewGuid(),
-                Name = registerRequest.name,
-                Email = registerRequest.email,
-                PhoneNumber = registerRequest.phone,
-                Password = encodedPassword,
-                NotifyTypeId = registerRequest.notifyTypeId,
-                RoleId = registerRequest.roleId
-            };
+            var userForDelete = await _context.Users.FindAsync(id);
 
-          
+            if (userForDelete is null)
+                throw new Exception("Пользователя не существует");
 
-            try
-            {
-                _context.Add(newUser);
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception)
-            {
 
-                throw;
-            }
+            _context.Users.Remove(userForDelete);
 
-            return newUser.Id;
+            return true;
         }
 
-        public async Task<UserEntity> GetById(Guid id) 
-        {
-            var user =  await _context.Users.FindAsync(id);
-
-            return user;
-        }
-
-        public async Task<string> GetNotifyType(int id) 
-        {
-            var notifyType = await _context.Notifies.FindAsync(id);
-
-        
-
-            return notifyType.Name;
-        }
-
-        public async Task<UserEntity> UpdateUserProfile(Guid id, string name, string email, string phoneNumber, string notifyType) 
+        public async Task<UserEntity> Get(Guid id)
         {
             var user = await _context.Users.FindAsync(id);
             if (user is null)
-                throw new ArgumentNullException("Пользователя с таким идентификатором не существует");
+                throw new Exception("Пользователя не существует");
 
-            
-            user.NotifyTypeId = _context.Notifies.Where(n => n.Name.Equals(notifyType)).Select(n=>n.Id).FirstOrDefaultAsync().Result;
-            user.Email = email;
-            user.Name = name;
-            user.PhoneNumber = phoneNumber;
+            return user;
+
+        }
+
+        public async Task<Guid> Update(Guid id, string name, string email, int notifyTypeId)
+        {
+            var userForUpdate = await _context.Users.FindAsync(id);
+
+            if (userForUpdate is null)
+                throw new Exception("Пользователя не существует");
+
+            userForUpdate.Name = name;
+            userForUpdate.Email = email;
+            userForUpdate.NotifyTypeId = notifyTypeId;
 
             await _context.SaveChangesAsync();
 
-            return user;
+            return userForUpdate.Id;
         }
-
-        public async Task<int> ChangeUserPassword(Guid id, string password) 
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user is null)
-                throw new ArgumentNullException("Пользователя не существует");
-
-            user.Password = password;
-
-            
-
-            return await _context.SaveChangesAsync();
-        }
-      
     }
 }

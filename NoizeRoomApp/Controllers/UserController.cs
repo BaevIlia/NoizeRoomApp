@@ -6,6 +6,7 @@ using System.Text;
 using NoizeRoomApp.Contracts.UserContracts;
 using NoizeRoomApp.Repositories;
 using CSharpFunctionalExtensions;
+using NoizeRoomApp.Abstractions;
 
 
 namespace NoizeRoomApp.Contracts
@@ -19,9 +20,9 @@ namespace NoizeRoomApp.Contracts
     {
 
 
-        private readonly UserRepository _userRepository;
+        private readonly IUserRepository _userRepository;
 
-        public UserController(UserRepository userRepository)
+        public UserController(IUserRepository userRepository)
         {
             _userRepository = userRepository;
         }
@@ -83,10 +84,10 @@ namespace NoizeRoomApp.Contracts
             {
                 return NoContent();
             }
-            if (string.IsNullOrEmpty(notifyType)) 
+           /* if (string.IsNullOrEmpty(notifyType)) 
             {
                 return BadRequest();
-            }
+            }*/
 
             return Ok(new GetProfileResponse(user.Id, user.Name, user.Email, user.PhoneNumber, notifyType, user.RoleId));
         }

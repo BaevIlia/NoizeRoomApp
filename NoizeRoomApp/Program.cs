@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using NoizeRoomApp.Abstractions;
 using NoizeRoomApp.Database;
 using NoizeRoomApp.Repositories;
 
@@ -14,8 +15,8 @@ namespace NoizeRoomApp
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
             builder.Services.AddControllers();
             builder.Services.AddDbContext<PostgreSQLContext>();
-                
-            builder.Services.AddScoped<UserRepository>();
+
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
             var app = builder.Build();
 
             app.MapControllers();
