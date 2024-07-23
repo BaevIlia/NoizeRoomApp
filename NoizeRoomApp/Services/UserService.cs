@@ -1,11 +1,12 @@
 ﻿using NoizeRoomApp.Abstractions;
 using NoizeRoomApp.Database.Models;
+using NoizeRoomApp.Dtos;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace NoizeRoomApp.Services
 {
-    public class UserService
+    public partial class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
 
@@ -15,11 +16,19 @@ namespace NoizeRoomApp.Services
         }
 
 
-        public async Task<UserEntity> GetUserById(Guid id)
+        public async Task<UserDto> GetUserById(Guid id)
         {
             var user = await _userRepository.Get(id);
 
-            return user;
+            UserDto responceUser = new() 
+            {
+                Id = id,
+                Name = user.Name,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                NotifyType = await _userRepository.GetNotifyType(user.NotifyTypeId)
+            };
+            return responceUser;
         }
 
         public async Task<Guid> CreateNewUser(string name, string email, string phoneNumber, string password, string notifyType, string role)

@@ -15,5 +15,7 @@ namespace NoizeRoomApp.Abstractions
         public Task<int> GetRoleId(string roleName);
         public Task<Guid> Authorize(string email, string password);
         public Task<bool> ChangePassword(Guid id, string password);
+        public Task<string> GetNotifyType(int notifyTypeId);
+        public Task<string> GetRole(int roleId);
     }
 }

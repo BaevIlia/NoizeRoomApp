@@ -107,5 +107,27 @@ namespace NoizeRoomApp.Repositories
 
             return true;
         }
+
+
+        public async Task<string> GetNotifyType(int notifyTypeId)
+        {
+            var notifyObject = await _context.Notifies.FindAsync(notifyTypeId);
+
+            if (notifyObject is null)
+                throw new Exception("Такого типа уведомлений не существует");
+            return notifyObject.Name;
+
+        }
+
+        public async Task<string> GetRole(int roleId)
+        {
+            var roleObject = await _context.Roles.FindAsync(roleId);
+
+            if (roleObject is null)
+                throw new Exception("Такой роли не существует");
+
+            return roleObject.Name;
+        }
+
     }
 }

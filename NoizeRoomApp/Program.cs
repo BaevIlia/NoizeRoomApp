@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using NoizeRoomApp.Abstractions;
 using NoizeRoomApp.Database;
 using NoizeRoomApp.Repositories;
+using NoizeRoomApp.Services;
 
 
 namespace NoizeRoomApp
@@ -17,6 +18,7 @@ namespace NoizeRoomApp
             builder.Services.AddDbContext<PostgreSQLContext>();
 
             builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IUserService, UserService>();
             var app = builder.Build();
 
             app.MapControllers();
