@@ -57,13 +57,21 @@ namespace NoizeRoomApp.Services
             return await _userRepository.Authorize(login, hashedPassword);
         }
 
-        public async Task<UserEntity> UpdateUser(Guid id, string name, string email, string phoneNumber, string notifyType)
+        public async Task<UserDto> UpdateUser(Guid id, string name, string email, string phoneNumber, string notifyType)
         {
             int notifyTypeId = await _userRepository.GetNotifyTypeId(notifyType);
             var userForUpdate = await _userRepository
                 .Update(id, name, email, phoneNumber, notifyTypeId);
 
-            return await _userRepository.Get(id);
+            var responce =  await _userRepository.Get(id);
+
+            return new UserDto
+            {
+                Id = responce.Id,
+                Name = responce.Name,
+                Email = responce.Email,
+                NotifyType = await _userRepository.GetNotifyType(responce.NotifyTypeId)
+            };
         }
 
         public async Task<bool> ChangePassword(Guid id, string password) 
@@ -71,7 +79,10 @@ namespace NoizeRoomApp.Services
             string decodedPassword = DecodePassword(password);
             string hashedPassword = HashPassword(decodedPassword);
 
-            return await _userRepository.ChangePassword(id, hashedPassword);
+           bool resultPassword = await _userRepository.ChangePassword(id, hashedPassword);
+            if (!resultPassword)
+                throw new Exception();
+            return resultPassword;
         }
 
 
