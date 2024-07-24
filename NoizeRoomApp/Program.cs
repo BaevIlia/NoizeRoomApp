@@ -19,6 +19,12 @@ namespace NoizeRoomApp
 
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
+
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = "localhost";
+                options.InstanceName = "local";
+            });
             var app = builder.Build();
 
             app.MapControllers();

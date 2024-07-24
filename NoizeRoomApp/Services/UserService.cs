@@ -1,16 +1,24 @@
-﻿using NoizeRoomApp.Abstractions;
+﻿using Microsoft.Extensions.Caching.Distributed;
+using NoizeRoomApp.Abstractions;
 using NoizeRoomApp.Database.Models;
 using NoizeRoomApp.Dtos;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace NoizeRoomApp.Services
 {
     public partial class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        IDistributedCache _cache;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, IDistributedCache cache)
+        {
+            _userRepository = userRepository;
+            _cache = cache;
+        }
+        public UserService(IUserRepository userRepository) 
         {
             _userRepository = userRepository;
         }
@@ -18,7 +26,24 @@ namespace NoizeRoomApp.Services
 
         public async Task<UserDto> GetUserById(Guid id)
         {
-            var user = await _userRepository.Get(id);
+            UserEntity? user = null;
+            var userString = await _cache.GetStringAsync(id.ToString());
+            if (userString!=null)
+            {
+                user = JsonSerializer.Deserialize<UserEntity>(userString);
+            }
+            if (user == null) 
+            {
+                user = await _userRepository.Get(id);
+                if (user != null) 
+                {
+                    userString = JsonSerializer.Serialize(user);
+                    await _cache.SetStringAsync(user.Id.ToString(), userString, new DistributedCacheEntryOptions 
+                    {
+                        SlidingExpiration = TimeSpan.FromMinutes(2)
+                    });
+                }
+            }
 
             UserDto responceUser = new() 
             {
