@@ -17,13 +17,13 @@ namespace NoizeRoomApp
             builder.Services.AddControllers();
             builder.Services.AddDbContext<PostgreSQLContext>();
 
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<UserRepository>();
+            builder.Services.AddScoped<IUserRepository, CachedUserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
 
             builder.Services.AddStackExchangeRedisCache(options =>
             {
                 options.Configuration = "localhost";
-                options.InstanceName = "local";
             });
             var app = builder.Build();
 

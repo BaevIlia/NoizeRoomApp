@@ -18,12 +18,13 @@ namespace NoizeRoomApp.Tests
 {
     public class UserServiceTest
     {
+        
 
         [Fact]
         public void GetUserByIdTest()
         {
             //Arrange
-        
+  
             var mock = new Mock<IUserRepository>();
             Guid mockId = Guid.Parse("c95d83e7-07fe-469f-8e34-0118df13fc58");
             UserEntity testUser = new()
