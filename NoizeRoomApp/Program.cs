@@ -15,8 +15,8 @@ namespace NoizeRoomApp
             string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
             builder.Services.AddControllers();
+            builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<PostgreSQLContext>();
-
             builder.Services.AddScoped<UserRepository>();
             builder.Services.AddScoped<IUserRepository, CachedUserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
@@ -27,6 +27,12 @@ namespace NoizeRoomApp
             });
             var app = builder.Build();
 
+            if (app.Environment.IsDevelopment()) 
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+               
+            }
             app.MapControllers();
 
             app.MapGet("/", () => "Hello world!");
