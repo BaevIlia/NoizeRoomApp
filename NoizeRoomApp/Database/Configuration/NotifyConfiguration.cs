@@ -11,6 +11,11 @@ namespace NoizeRoomApp.Database.Configuration
             builder.HasMany(n => n.Users)
                 .WithOne(u => u.Notify);
 
+            builder.HasData(
+                new NotifyEntity {Id=1, Name = "noNotify" },
+                new NotifyEntity {Id =2, Name = "emailNotify" },
+                new NotifyEntity {Id = 3, Name = "vkNotify" }
+                );
         }
     }
 }

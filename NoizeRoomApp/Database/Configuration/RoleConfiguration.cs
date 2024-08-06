@@ -11,7 +11,11 @@ namespace NoizeRoomApp.Database.Configuration
             builder.HasMany(r => r.Users)
                 .WithOne(u => u.Role);
 
-
+            builder.HasData(
+                new RoleEntity {Id =1, Name = "Admin" },
+                new RoleEntity {Id = 2, Name = "User" }
+            );
+           
         }
     }
 }

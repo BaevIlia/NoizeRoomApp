@@ -30,6 +30,8 @@ namespace NoizeRoomApp.Database
             modelBuilder.ApplyConfiguration(new RoleConfiguration());
             modelBuilder.ApplyConfiguration(new NotifyConfiguration());
 
+            modelBuilder.Entity<RoleEntity>()
+
             base.OnModelCreating(modelBuilder);
         }
 
