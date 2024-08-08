@@ -89,26 +89,25 @@ namespace NoizeRoomApp.Tests
         public void UpdateUser() 
         {
             var mock = new Mock<IUserRepository>();
-
-            UserDto testUser = new()
+            UserDto userAfterUpdate = new()
             {
-                Id = Guid.Parse("c95d83e7-07fe-469f-8e34-0118df13fc58"),
-                Name = "ФанкиМанки",
+                Id = Guid.Parse("c5f24b0e-2ef0-427d-99e3-fbd59d5fe0c4"),
+                Name = "Name",
                 Email = "test@mail.ru",
-                PhoneNumber = "1234567890",
+                PhoneNumber= "1234567890",
                 NotifyType = "noNotify"
-
-
             };
+            mock.Setup(repo=>repo.Update(Guid.Parse("c5f24b0e-2ef0-427d-99e3-fbd59d5fe0c4"), "Name", "test@mail.ru", "1234567890", "noNotify")).ReturnsAsync(userAfterUpdate);
             UserService userService = new(mock.Object);
 
-            var result = userService.UpdateUser(testUser.Id, testUser.Name, testUser.Email, testUser.PhoneNumber, testUser.NotifyType);
+            var result = userService.UpdateUser(Guid.Parse("c5f24b0e-2ef0-427d-99e3-fbd59d5fe0c4"), "Name", "test@mail.ru", "1234567890", "noNotify");
 
             Assert.NotNull(result);
-            Assert.IsType<Guid>(result.Result);
+            Assert.IsType<UserDto>(result.Result);
+            Assert.Equal(userAfterUpdate, result.Result);
         }
 
-
+        
 
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
 using NoizeRoomApp.Abstractions;
 using NoizeRoomApp.Database.Models;
+using NoizeRoomApp.Dtos;
 using System.Text.Json;
 
 namespace NoizeRoomApp.Repositories
@@ -84,9 +85,9 @@ namespace NoizeRoomApp.Repositories
             return _userRepository.GetRoleId(roleName);
         }
 
-        public Task<Guid> Update(Guid id, string name, string email, string phoneNumber, int notifyTypeId)
+        public Task<UserDto> Update(Guid id, string name, string email, string phoneNumber, string notifyType)
         {
-            return _userRepository.Update(id, name, email, phoneNumber, notifyTypeId);
+            return _userRepository.Update(id, name, email, phoneNumber, notifyType);
         }
     }
 }

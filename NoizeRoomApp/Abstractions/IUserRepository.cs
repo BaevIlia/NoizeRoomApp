@@ -1,5 +1,6 @@
 ﻿using NoizeRoomApp.Contracts.UserContracts;
 using NoizeRoomApp.Database.Models;
+using NoizeRoomApp.Dtos;
 
 namespace NoizeRoomApp.Abstractions
 {
@@ -8,7 +9,7 @@ namespace NoizeRoomApp.Abstractions
         public Task<UserEntity> Get(Guid id);
         public Task<Guid> Create(UserEntity userForCreate);
         public Task<bool> Delete(Guid id);
-        public Task<Guid> Update(Guid id, string name, string email, string phoneNumber, int notifyTypeId);
+        public Task<UserDto> Update(Guid id, string name, string email, string phoneNumber, string notifyType);
 
         public Task<int> GetNotifyTypeId(string notifyType);
 

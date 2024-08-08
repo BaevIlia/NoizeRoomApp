@@ -4,6 +4,7 @@ using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 using NoizeRoomApp.Contracts.UserContracts;
 using NoizeRoomApp.Abstractions;
+using NoizeRoomApp.Dtos;
 
 namespace NoizeRoomApp.Repositories
 {
@@ -48,7 +49,7 @@ namespace NoizeRoomApp.Repositories
 
         }
 
-        public async Task<Guid> Update(Guid id, string name, string email, string phoneNumber, int notifyTypeId)
+        public async Task<UserDto> Update(Guid id, string name, string email, string phoneNumber, string notifyType)
         {
             var userForUpdate = await _context.Users.FindAsync(id);
 
@@ -57,11 +58,19 @@ namespace NoizeRoomApp.Repositories
 
             userForUpdate.Name = name;
             userForUpdate.Email = email;
-            userForUpdate.NotifyTypeId = notifyTypeId;
+            userForUpdate.PhoneNumber = phoneNumber;
+            userForUpdate.NotifyTypeId = await GetNotifyTypeId(notifyType);
 
             await _context.SaveChangesAsync();
-
-            return userForUpdate.Id;
+            var changedUserData = await _context.Users.FindAsync(userForUpdate.Id);
+            return new UserDto()
+            {
+                Id = changedUserData.Id,
+                Name = changedUserData.Name,
+                Email = changedUserData.Email,
+                PhoneNumber = changedUserData.PhoneNumber,
+                NotifyType = await GetNotifyType(changedUserData.NotifyTypeId)
+            };
         }
 
         public async Task<int> GetNotifyTypeId(string notifyType) 

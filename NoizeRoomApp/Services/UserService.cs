@@ -65,19 +65,13 @@ namespace NoizeRoomApp.Services
 
         public async Task<UserDto> UpdateUser(Guid id, string name, string email, string phoneNumber, string notifyType)
         {
-            int notifyTypeId = await _userRepository.GetNotifyTypeId(notifyType);
-            var userForUpdate = await _userRepository
-                .Update(id, name, email, phoneNumber, notifyTypeId);
+            var userUpdateData = await _userRepository
+                .Update(id, name, email, phoneNumber, notifyType);
 
-            var responce =  await _userRepository.Get(id);
+            if (userUpdateData is null)
+                throw new ArgumentNullException("Пользователя не существует");
 
-            return new UserDto
-            {
-                Id = responce.Id,
-                Name = responce.Name,
-                Email = responce.Email,
-                NotifyType = await _userRepository.GetNotifyType(responce.NotifyTypeId)
-            };
+            return userUpdateData;
         }
 
         public async Task<bool> ChangePassword(Guid id, string password) 
