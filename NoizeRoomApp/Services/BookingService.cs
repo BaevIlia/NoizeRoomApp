@@ -98,5 +98,10 @@ namespace NoizeRoomApp.Services
             var result = await _repository.UpdateBooking(bookingId, bookingUpdateData);
             return result;
         }
+        public async Task<string> GetBookerName(Guid bookerId) 
+        {
+            var result = await _repository.GetBookerName(bookerId);
+            return result;
+        }
     }
 }

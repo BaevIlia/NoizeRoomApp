@@ -14,5 +14,6 @@ namespace NoizeRoomApp.Abstractions
         Task<bool> UpdateBook(Guid bookingId, BookingDto bookingUpdateData);
         List<DateTime> GenerateDatesByPeriod(DateTime dateFrom, DateTime dateTo);
         List<DateTime> GenerateDatesByMonth(DateTime day);
+        Task<string> GetBookerName(Guid bookerId);
     }
 }

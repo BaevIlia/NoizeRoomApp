@@ -3,6 +3,7 @@ using NoizeRoomApp.Database;
 using NoizeRoomApp.Database.Models;
 using NoizeRoomApp.Contracts.BookingContracts;
 using NoizeRoomApp.Abstractions;
+using NoizeRoomApp.Dtos;
 
 namespace NoizeRoomApp.Controllers
 {
@@ -26,6 +27,7 @@ namespace NoizeRoomApp.Controllers
         [HttpGet("getBookingsByDate")]
         public async Task<IActionResult> GetBookingByDate([FromBody] GetBookingByDateRequest request)
         {
+            /*
             //Генерируется список дат за период
             List<DateTime> dates = DatesGeneration(request.dateFrom, request.dateTo);
 
@@ -46,7 +48,8 @@ namespace NoizeRoomApp.Controllers
             }
 
 
-            return Ok(responce);
+            return Ok(responce);*/
+            return BadRequest();
         }
 
         /// <summary>
@@ -56,13 +59,14 @@ namespace NoizeRoomApp.Controllers
         /// <returns>Возвращает коллекцию вида <DateTime date, int count></returns>
         [HttpGet("getStatistic")]
          public async Task<IActionResult> GetStatisticByMonth([FromBody] GetStatisticRequest request)
-        {
+        {/*
             //Генерация дат месяца
             List<DateTime> dates = GenerateDatesByMonth(request.date);
             //Генерация статистики
             List<GetStatisticResponse> responce = GenerateStatistic(dates);
 
-            return Ok(responce);
+            return Ok(responce);*/
+            return BadRequest();
         }
 
 
@@ -76,38 +80,19 @@ namespace NoizeRoomApp.Controllers
         [HttpPost("book")]
         public async Task<IActionResult> Book([FromBody] AddBookRequest request)
         {
-
-            //Поиск имени бронирующего по его идентификатору
-            string bookerName = _context.Users.Where(u => u.Id.Equals(Guid.Parse(request.bookerId))).Select(u=>u.Name).FirstOrDefault();
-            try
+            BookingEntity booking = new()
             {
-                //Создание брони
-                BookingEntity newBook = new()
-                {
-                    Id = Guid.NewGuid(),
-                    BookerId = Guid.Parse(request.bookerId),
-                    BookerName = bookerName,
-                    Date = request.date,
-                    TimeFrom = request.timeFrom,
-                    TimeTo = request.timeTo,
-                };
+                BookerId = Guid.Parse(request.bookerId),
+                Date = request.date,
+                TimeFrom = request.timeFrom,
+                TimeTo = request.timeTo,
 
-                if (newBook is null) 
-                {
-                    return NoContent();
-                }
-                //Добавление и сохранение брони
-                _context.Bookings.Add(newBook);
-                _context.SaveChanges();
+            };
+            var result = await _bookingService.MakeBook(Guid.Parse(request.bookerId), booking);
+            if (result)
                 return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-
-
-
+            else
+                return BadRequest();
         }
         /// <summary>
         /// Запрос на удаление брони. 
@@ -117,6 +102,7 @@ namespace NoizeRoomApp.Controllers
         [HttpDelete("deleteBook")]
         public async Task<IActionResult> BookDelete([FromBody] DeleteBookRequest request)
         {
+            /*
             //Поиск брони на удаление
             BookingEntity bookForDelete = _context.Bookings.Where(b => b.Id.Equals(Guid.Parse(request.id))).FirstOrDefault();
 
@@ -128,6 +114,8 @@ namespace NoizeRoomApp.Controllers
             _context.Bookings.Remove(bookForDelete);
             _context.SaveChanges();
             return Ok();
+            */
+            return BadRequest();
         }
 
         /// <summary>
@@ -138,6 +126,7 @@ namespace NoizeRoomApp.Controllers
         [HttpGet("getDayBooking")]
         public async Task<IActionResult> GetDayBooking([FromBody] GetBooksByDayRequest request)
         {
+            /*
             //Поиск текущего пользователя
             UserEntity currentUser = _context.Users.Where(u=>u.Id.Equals(request.userId)).FirstOrDefault();
 
@@ -163,6 +152,8 @@ namespace NoizeRoomApp.Controllers
             {
                 return BadRequest();
             }
+            */
+            return BadRequest();
         }
 
         /// <summary>
@@ -173,7 +164,16 @@ namespace NoizeRoomApp.Controllers
         [HttpPut("bookUpdate")]
         public async Task<IActionResult> Update([FromBody] UpdateBookRequest request)
         {
-           
+            string bookerName = await _bookingService.GetBookerName(Guid.Parse(request.bookerId));
+            BookingDto bookingDataForUpdate = new(request.date, request.timeFrom, request.timeTo, bookerName);
+
+
+            var result = await _bookingService.UpdateBook(Guid.Parse(request.id), bookingDataForUpdate);
+
+            if (result)
+                return Ok();
+            else
+                return BadRequest();
         }
    
         /// <summary>
@@ -226,18 +226,7 @@ namespace NoizeRoomApp.Controllers
         /// </summary>
         /// <param name="dates">Список сгенерированных дат за месяц</param>
         /// <returns></returns>
-        private List<GetStatisticResponse> GenerateStatistic(List<DateTime> dates)
-        {
-            List<GetStatisticResponse> responce = new();
-            //По каждой дате проверяется количество записей о брони
-            foreach (var date in dates)
-            {
-                responce.Add(new GetStatisticResponse(date, _context.Bookings.Where(b => b.Date.Equals(date)).Count()));
-
-            }
-
-            return responce;
-        }
+        
 
     }
 
