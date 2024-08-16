@@ -1,7 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 using NoizeRoomApp.Abstractions;
-using NoizeRoomApp.Contracts.BookingContracts;
 using NoizeRoomApp.Database;
 using NoizeRoomApp.Database.Models;
 using NoizeRoomApp.Dtos;
@@ -103,7 +102,7 @@ namespace NoizeRoomApp.Repositories
             return result;
         }
 
-        public async Task<bool> MakeBooking(Guid bookerId, BookingEntity newBooking)
+        public async Task<bool> CreateBook(Guid bookerId, BookingEntity newBooking)
         {
            
             string? bookerName = await _context.Users

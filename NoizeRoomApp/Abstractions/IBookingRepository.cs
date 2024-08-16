@@ -8,7 +8,7 @@ namespace NoizeRoomApp.Abstractions
         Task<BookingEntity> GetBooking(Guid id);
         List<IsBookedDto> GetBookingsByDate(List<DateTime> dates);
         List<StatisticDto> GetStatistic(List<DateTime> dates);
-        Task<bool> MakeBooking(Guid bookerId, BookingEntity newBooking);
+        Task<bool> CreateBook(Guid bookerId, BookingEntity newBooking);
         Task<string> GetBookerName(Guid id);
 
         Task<bool> DeleteBooking(Guid id);
