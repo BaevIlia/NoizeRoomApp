@@ -137,7 +137,7 @@ namespace NoizeRoomApp.Controllers
         public async Task<IActionResult> GetDayBooking([FromBody] GetBooksByDayRequest request)
         {
             //Поиск текущего пользователя
-            UserEntity currentUser = _context.Users.Where(u=>u.Id.Equals(Guid.Parse(request.userId))).FirstOrDefault();
+            UserEntity currentUser = _context.Users.Where(u=>u.Id.Equals(request.userId)).FirstOrDefault();
 
             List<GetBooksByDayResponse> responce = new();
             //Если роль текущего пользователя "Администратор", то выводится информация по всем броням на день

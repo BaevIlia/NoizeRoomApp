@@ -1,4 +1,4 @@
 ﻿namespace NoizeRoomApp.Contracts.BookingContracts
 {
-    public record GetBooksByDayRequest(string userId, DateTime date);
+    public record GetBooksByDayRequest(Guid userId, DateTime date);
 }
