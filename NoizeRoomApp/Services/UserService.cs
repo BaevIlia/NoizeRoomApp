@@ -81,7 +81,7 @@ namespace NoizeRoomApp.Services
 
            bool resultPassword = await _userRepository.ChangePassword(id, hashedPassword);
             if (!resultPassword)
-                throw new Exception();
+                throw new Exception("Не удалось изменить пароль");
             return resultPassword;
         }
 

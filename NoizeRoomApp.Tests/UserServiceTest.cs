@@ -118,7 +118,30 @@ namespace NoizeRoomApp.Tests
             Assert.NotEqual(result.Result.Name, userBeforeUpdate.Name);
         }
 
-     
+        [Fact]
+        public void ChangePasswordTest() 
+        {
+             var mock = new Mock<IUserRepository>();
+            UserEntity userBeforeUpdate = new()
+            {
+                Id = Guid.Parse("c5f24b0e-2ef0-427d-99e3-fbd59d5fe0c4"),
+                Name = "TestName",
+                Email = "test@mail.ru",
+                PhoneNumber = "12345",
+                Password = "MWEyYjNj",
+                NotifyTypeId = 1
+            };
+            string newCryptedPassword = "M2MyYjFh";
+            string newHashedPassword = "yvGj37UF/+0NAkEw9Yxc+g==";
+
+            mock.Setup(repo => repo.Get(userBeforeUpdate.Id)).ReturnsAsync(userBeforeUpdate);
+            mock.Setup(repo => repo.ChangePassword(userBeforeUpdate.Id, newHashedPassword)).ReturnsAsync(true);
+            UserService userService = new UserService(mock.Object);
+            var result  = userService.ChangePassword(userBeforeUpdate.Id, newCryptedPassword);
+
+            Assert.NotNull(result);
+            Assert.True(result.Result);
+        }
 
     }
   
