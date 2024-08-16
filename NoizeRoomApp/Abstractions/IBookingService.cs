@@ -5,14 +5,14 @@ namespace NoizeRoomApp.Abstractions
 {
     public interface IBookingService
     {
-        Task<List<BookingDto>> GetBookingsByPeriod(DateTime dateFrom, DateTime dateTo);
+        List<IsBookedDto> GetBookingsByPeriod(DateTime dateFrom, DateTime dateTo);
 
-        Task<List<StatisticDto>> GenerateMonthStatistic(DateTime date);
-        Task<bool> MakeBook(BookingEntity book);
+        List<StatisticDto> GenerateMonthStatistic(DateTime date);
+        Task<bool> MakeBook(Guid bookerId, BookingEntity book);
         Task<bool> DeleteBook(Guid bookId);
         Task<List<BookingDto>> GetBookingPerDay(Guid userId, DateTime day);
-        Task<bool> UpdateBook(BookingDto bookingUpdateData);
-        Task<List<DateTime>> GenerateDatesByPeriod(DateTime dateFrom, DateTime dateTo);
-        Task<List<DateTime>> GenerateDatesByMonth(DateTime day);
+        Task<bool> UpdateBook(Guid bookingId, BookingDto bookingUpdateData);
+        List<DateTime> GenerateDatesByPeriod(DateTime dateFrom, DateTime dateTo);
+        List<DateTime> GenerateDatesByMonth(DateTime day);
     }
 }

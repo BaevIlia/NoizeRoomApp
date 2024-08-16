@@ -2,6 +2,7 @@
 using NoizeRoomApp.Database;
 using NoizeRoomApp.Database.Models;
 using NoizeRoomApp.Contracts.BookingContracts;
+using NoizeRoomApp.Abstractions;
 
 namespace NoizeRoomApp.Controllers
 {
@@ -9,12 +10,12 @@ namespace NoizeRoomApp.Controllers
     [Route("api/[controller]")]
     public class BookingController : ControllerBase
     {
-    
 
-        private readonly PostgreSQLContext _context;
-        public BookingController(PostgreSQLContext context) 
+
+        private readonly IBookingService _bookingService;
+        public BookingController(IBookingService bookingService) 
         {
-            _context = context;
+            _bookingService = bookingService;
         }
        
         /// <summary>
@@ -75,6 +76,7 @@ namespace NoizeRoomApp.Controllers
         [HttpPost("book")]
         public async Task<IActionResult> Book([FromBody] AddBookRequest request)
         {
+
             //Поиск имени бронирующего по его идентификатору
             string bookerName = _context.Users.Where(u => u.Id.Equals(Guid.Parse(request.bookerId))).Select(u=>u.Name).FirstOrDefault();
             try
@@ -171,29 +173,7 @@ namespace NoizeRoomApp.Controllers
         [HttpPut("bookUpdate")]
         public async Task<IActionResult> Update([FromBody] UpdateBookRequest request)
         {
-            //Поиск брони по идентификатору
-            BookingEntity bookForUpdate = _context.Bookings.Where(b=>b.Id.Equals(Guid.Parse(request.id))).FirstOrDefault();
-
-            if (bookForUpdate is null) 
-            {
-                return NoContent();
-            }
-            //Запись в БД
-            try
-            {
-                bookForUpdate.Date = request.date;
-                bookForUpdate.BookerName = _context.Users.Where(u => u.Id.Equals(Guid.Parse(request.bookerId))).Select(u => u.Name).FirstOrDefault();
-                bookForUpdate.TimeFrom = request.timeFrom;
-                bookForUpdate.TimeTo = request.timeTo;
-
-                _context.SaveChanges();
-
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+           
         }
    
         /// <summary>

@@ -20,6 +20,8 @@ namespace NoizeRoomApp
             builder.Services.AddScoped<UserRepository>();
             builder.Services.AddScoped<IUserRepository, CachedUserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+            builder.Services.AddScoped<IBookingService, BookingService>();
 
             builder.Services.AddStackExchangeRedisCache(options =>
             {
