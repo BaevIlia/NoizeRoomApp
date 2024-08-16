@@ -118,7 +118,8 @@ namespace NoizeRoomApp.Tests
             Assert.NotEqual(result.Result.Name, userBeforeUpdate.Name);
         }
 
-        
+     
 
     }
+  
 }

@@ -111,9 +111,15 @@ namespace NoizeRoomApp.Repositories
             if (user.Password.Equals(password))
                 throw new Exception("Вы пытаетесь сменить текущий пароль на идентичный, пожалуйста, придумайте новый пароль");
             user.Password = password;
-            var resultCode = await _context.SaveChangesAsync();
-            if (resultCode == 0)
-                throw new Exception("Возникла ошибка при смене пароля");
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex) 
+            {
+                Console.WriteLine(ex.ToString());
+                return false;
+            }
 
             return true;
         }
