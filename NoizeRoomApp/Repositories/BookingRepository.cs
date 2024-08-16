@@ -147,12 +147,24 @@ namespace NoizeRoomApp.Repositories
         {
             var bookingForUpdate = await _context.Bookings.FindAsync(bookingId);
 
+            if(bookingForUpdate is null)
+                return false;
+
             bookingForUpdate.Date = bookingUpdateData.Date;
             bookingForUpdate.TimeFrom = bookingUpdateData.TimeFrom;
             bookingForUpdate.TimeTo = bookingUpdateData.TimeTo;
             bookingForUpdate.BookerName = bookingUpdateData.BookerName;
 
-            _context.SaveChangesAsync();
+            try 
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch(Exception ex) 
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+           
 
             return true;
         }
