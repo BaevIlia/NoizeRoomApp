@@ -5,15 +5,15 @@ namespace NoizeRoomApp.Abstractions
 {
     public interface IBookingRepository
     {
-        BookingEntity GetBooking(Guid id);
+        Task<BookingEntity> GetBooking(Guid id);
         List<IsBookedDto> GetBookingsByDate(List<DateTime> dates);
         List<StatisticDto> GetStatistic(List<DateTime> dates);
-        bool MakeBooking(string bookerName, BookingEntity newBooking);
-        string GetBookerName(Guid id);
+        Task<bool> MakeBooking(Guid bookerId, BookingEntity newBooking);
+        Task<string> GetBookerName(Guid id);
 
-        bool DeleteBooking(Guid id);
-        bool UpdateBooking(BookingEntity newBooking);
+        Task<bool> DeleteBooking(Guid id);
+        Task<bool> UpdateBooking(Guid bookingId, BookingDto newBooking);
 
-        List<GetBooksByDayDto> GetBooksByDay(Guid userId, DateTime date);
+        Task<List<BookingDto>> GetBooksByDay(Guid userId, DateTime date);
     }
 }
