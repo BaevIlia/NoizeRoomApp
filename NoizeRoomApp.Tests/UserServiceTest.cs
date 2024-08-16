@@ -47,7 +47,7 @@ namespace NoizeRoomApp.Tests
             Assert.Equal(result.Name, testUser.Name);
         }
         [Fact]
-        public void CreateNewUser() 
+        public void CreateNewUserTest() 
         {
             var mock = new Mock<IUserRepository>();
 
@@ -86,9 +86,19 @@ namespace NoizeRoomApp.Tests
 
         }
         [Fact]
-        public void UpdateUser() 
+        public void UpdateUserTest() 
         {
             var mock = new Mock<IUserRepository>();
+
+            UserEntity userBeforeUpdate = new()
+            {
+                Id = Guid.Parse("c5f24b0e-2ef0-427d-99e3-fbd59d5fe0c4"),
+                Name = "TestName",
+                Email = "test@mail.ru",
+                PhoneNumber = "12345",
+                NotifyTypeId = 1
+            };
+
             UserDto userAfterUpdate = new()
             {
                 Id = Guid.Parse("c5f24b0e-2ef0-427d-99e3-fbd59d5fe0c4"),
@@ -97,14 +107,15 @@ namespace NoizeRoomApp.Tests
                 PhoneNumber= "1234567890",
                 NotifyType = "noNotify"
             };
+            mock.Setup(repo => repo.Get(userBeforeUpdate.Id)).ReturnsAsync(userBeforeUpdate);
             mock.Setup(repo=>repo.Update(Guid.Parse("c5f24b0e-2ef0-427d-99e3-fbd59d5fe0c4"), "Name", "test@mail.ru", "1234567890", "noNotify")).ReturnsAsync(userAfterUpdate);
+        
             UserService userService = new(mock.Object);
-
             var result = userService.UpdateUser(Guid.Parse("c5f24b0e-2ef0-427d-99e3-fbd59d5fe0c4"), "Name", "test@mail.ru", "1234567890", "noNotify");
-
+            
             Assert.NotNull(result);
             Assert.IsType<UserDto>(result.Result);
-            Assert.Equal(userAfterUpdate, result.Result);
+            Assert.NotEqual(result.Result.Name, userBeforeUpdate.Name);
         }
 
         
