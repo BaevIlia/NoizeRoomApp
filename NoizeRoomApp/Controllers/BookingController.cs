@@ -4,6 +4,7 @@ using NoizeRoomApp.Database.Models;
 using NoizeRoomApp.Contracts.BookingContracts;
 using NoizeRoomApp.Abstractions;
 using NoizeRoomApp.Dtos;
+using CSharpFunctionalExtensions;
 
 namespace NoizeRoomApp.Controllers
 {
@@ -24,9 +25,13 @@ namespace NoizeRoomApp.Controllers
         /// </summary>
         /// <param name="request">Возвращается коллекцию вида <DateTime date, bool isBooking></param>
         /// <returns></returns>
-        [HttpGet("getBookingsByDate")]
+        [HttpPost("getBookingsByDate")]
         public async Task<IActionResult> GetBookingByDate([FromBody] GetBookingByDateRequest request)
         {
+            var result = _bookingService.GetBookingsByPeriod(request.dateFrom, request.dateTo);
+
+            if (result.Count != 0)
+                return Ok(result);
             /*
             //Генерируется список дат за период
             List<DateTime> dates = DatesGeneration(request.dateFrom, request.dateTo);
@@ -57,16 +62,23 @@ namespace NoizeRoomApp.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns>Возвращает коллекцию вида <DateTime date, int count></returns>
-        [HttpGet("getStatistic")]
+        [HttpPost("getStatistic")]
          public async Task<IActionResult> GetStatisticByMonth([FromBody] GetStatisticRequest request)
-        {/*
+        {
+            List<StatisticDto> result = _bookingService.GenerateMonthStatistic(request.date);
+
+            if (result.Count != 0)
+                return Ok(result);
+            else
+                return BadRequest();
+            /*
             //Генерация дат месяца
             List<DateTime> dates = GenerateDatesByMonth(request.date);
             //Генерация статистики
             List<GetStatisticResponse> responce = GenerateStatistic(dates);
 
             return Ok(responce);*/
-            return BadRequest();
+    
         }
 
 
@@ -102,6 +114,11 @@ namespace NoizeRoomApp.Controllers
         [HttpDelete("deleteBook")]
         public async Task<IActionResult> BookDelete([FromBody] DeleteBookRequest request)
         {
+            var result = await _bookingService.DeleteBook(Guid.Parse(request.id));
+
+            if (result)
+                return Ok();
+
             /*
             //Поиск брони на удаление
             BookingEntity bookForDelete = _context.Bookings.Where(b => b.Id.Equals(Guid.Parse(request.id))).FirstOrDefault();
@@ -123,37 +140,17 @@ namespace NoizeRoomApp.Controllers
         /// </summary>
         /// <param name="request">Принимает дату и идентификатор текущего пользователя</param>
         /// <returns>Коллекция объектов вида <DateTime date, DateTime timeFrom, DateTime timeTo, string bookerName></returns>
-        [HttpGet("getDayBooking")]
+        [HttpPost("getDayBooking")]
         public async Task<IActionResult> GetDayBooking([FromBody] GetBooksByDayRequest request)
         {
-            /*
-            //Поиск текущего пользователя
-            UserEntity currentUser = _context.Users.Where(u=>u.Id.Equals(request.userId)).FirstOrDefault();
+            var result = await _bookingService.GetBookingPerDay(request.userId, request.date);
 
-            List<GetBooksByDayResponse> responce = new();
-            //Если роль текущего пользователя "Администратор", то выводится информация по всем броням на день
-            if (currentUser.RoleId == 1)
-            {
-                responce = (from books in _context.Bookings
-                           .Where(b => b.Date.Day.Equals(request.date.Day))
-                            select new GetBooksByDayResponse(books.Date, books.TimeFrom, books.TimeTo, books.BookerName)).ToList();
+            if (result.Count != 0)
+                return Ok(result);
+            else
+                return NoContent();
 
-                return Ok(responce);
-            }
-            //Если роль текущего пользователя "Пользователь", то выводится информация по его броням на день
-            else if (currentUser.RoleId == 2)
-            {
-                responce = (from books in _context.Bookings
-                            .Where(b => b.Date.Day.Equals(request.date.Day)&& b.BookerId.Equals(currentUser.Id))
-                            select new GetBooksByDayResponse(books.Date, books.TimeFrom, books.TimeTo, books.BookerName)).ToList();
-                return Ok(responce);
-            }
-            else 
-            {
-                return BadRequest();
-            }
-            */
-            return BadRequest();
+          
         }
 
         /// <summary>
@@ -170,8 +167,10 @@ namespace NoizeRoomApp.Controllers
 
             var result = await _bookingService.UpdateBook(Guid.Parse(request.id), bookingDataForUpdate);
 
+            
+
             if (result)
-                return Ok();
+                return Ok(result);
             else
                 return BadRequest();
         }
@@ -182,50 +181,7 @@ namespace NoizeRoomApp.Controllers
         /// <param name="dateFrom">Дата "От"</param>
         /// <param name="dateTo">Дата "До"</param>
         /// <returns></returns>
-        private static List<DateTime> DatesGeneration(DateTime dateFrom, DateTime dateTo)
-        {
-
-            List<DateTime> dates = new();
-            DateTime startDate = dateFrom;
-            DateTime nextDate = startDate.AddDays(1);
-            //Генерация происходит путём добавления по одному дню к дате, пока очередная дата для добавления не будет позже чем дата "До"
-            while (nextDate <= dateTo)
-            {
-                dates.Add(startDate);
-                nextDate = startDate.AddDays(1);
-                startDate = nextDate;
-
-            }
-
-            return dates;
-        }
-
-        /// <summary>
-        /// Генерация дат на определённый месяц
-        /// </summary>
-        /// <param name="date">Дата из которой метод берёт месяц и год</param>
-        /// <returns></returns>
-        private static List<DateTime> GenerateDatesByMonth(DateTime date)
-        {
-            List<DateTime> dates = new();
-
-            //Через метод DaysInMonth получается количество дней этого месяца
-            int count = DateTime.DaysInMonth(date.Year, date.Month);
-
-            //Заполнение списка дат
-            for (int i = 1; i <= count; i++)
-            {
-                dates.Add(new DateTime(date.Year, date.Month, i));
-            }
-
-            return dates;
-        }
-
-        /// <summary>
-        /// Метод генерации статистики посещений за месяц
-        /// </summary>
-        /// <param name="dates">Список сгенерированных дат за месяц</param>
-        /// <returns></returns>
+   
         
 
     }

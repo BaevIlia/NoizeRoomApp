@@ -79,7 +79,7 @@ namespace NoizeRoomApp.Services
             List<DateTime> dates = GenerateDatesByPeriod(dateFrom, dateTo);
             List<BookingDto> bookings = new();
             var result = _repository.GetBookingsByDate(dates);
-            if (result.Count == 0 && result.GetType() == typeof(IsBookedDto))
+            if (result.Count != 0 && result.GetType() == typeof(List<IsBookedDto>))
                 return result;
             else
                 return new List<IsBookedDto>();

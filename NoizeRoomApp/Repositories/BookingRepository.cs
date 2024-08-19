@@ -22,6 +22,7 @@ namespace NoizeRoomApp.Repositories
             if (bookingForDelete != null && bookingForDelete.GetType() == typeof(BookingEntity))
             {
                 _context.Bookings.Remove(bookingForDelete);
+                await _context.SaveChangesAsync();
                 return true;
             }
             else
