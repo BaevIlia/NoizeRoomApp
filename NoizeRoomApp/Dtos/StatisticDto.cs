@@ -2,8 +2,8 @@
 {
     public class StatisticDto
     {
-        DateTime Date { get; set; }
-        int Count { get; set; }
+        public DateTime Date { get; set; }
+        public int Count { get; set; }
 
         public StatisticDto(DateTime date, int count)
         {

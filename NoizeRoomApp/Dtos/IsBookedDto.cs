@@ -2,8 +2,8 @@
 {
     public class IsBookedDto
     {
-        DateTime Date { get; set; }
-        bool IsBooked { get; set; }
+        public DateTime Date { get; set; }
+        public bool IsBooked { get; set; }
 
         public IsBookedDto(DateTime date, bool isBooked)
         {
